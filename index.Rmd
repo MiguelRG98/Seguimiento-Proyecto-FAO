@@ -374,7 +374,7 @@ Column {.sidebar}
 
 **Importante**: Puede seleccionar un mes específico o visualizar los datos acumulados.
 
-El tablero fue actualizado el **`r format(fecha_reciente, "%d de %B de %Y")`** al cierre del día (19:00 hrs. CDMX) La información está disponible por entidad (técnico) y por mes. Se nutre de diversos documentos de excel que los técnicos llenan con regularidad y la actualización en los datos depende de este llenado.  
+El tablero fue actualizado el **`r format(fecha_reciente, "%d de %B de %Y")`** al cierre del día (18:50 hrs. CDMX) La información está disponible por entidad (técnico) y por mes. Se nutre de diversos documentos de excel que los técnicos llenan con regularidad y la actualización en los datos depende de este llenado.  
 **Ni el GANTT ni la tabla de técnicos en misión se modifica al cambiar el filtro**
 
 
@@ -445,14 +445,14 @@ b.1.c |>
 b.2 <- df.g |> 
   filter(fecha==fecha_reciente) |>
   filter(!is.na(nota)) |>
-  distinct(tecnico, x2, fecha) |>
-  mutate(fecha=format(fecha, "%d-%B-%Y")) |>
-  rename("Nombre"="tecnico", "Situación"="x2", "Fecha"="fecha") 
+  distinct(tecnico, x2, estado) |>
+  #mutate(fecha=format(fecha, "%d-%B-%Y")) |>
+  rename("Nombre"="tecnico", "Situación"="x2", "Estado"="estado") 
 
 if(nrow(b.2)==0){
   b.2[1, "Nombre"] <- "Sin técnicos en capacitación"
   b.2[1, "Situación"] <- "N.A"
-  b.2[1, "Fecha"] <- "N.A"
+  b.2[1, "Estado"] <- "N.A"
 }
 
 plot_ly(
@@ -473,36 +473,7 @@ plot_ly(
 
 ```
 
-### 
-```{r Personas únicas de las listas, echo=FALSE}
-generos <- df.listas |>
-  group_by(mes) |>
-  summarise(Hombres = sum(sexo_h),
-            Mujeres = sum(sexo_m)) |>
-  pivot_longer(cols = c(Hombres, Mujeres))
 
-generos.acum <- df.listas |>
-  summarise(Hombres = sum(sexo_h),
-            Mujeres = sum(sexo_m)) |>
-  pivot_longer(cols = c(Hombres, Mujeres)) |>
-  mutate(mes="Acumulado")
-
-
-generos <- rbind(generos, generos.acum)
-
-bc.3 <- SharedData$new(generos, key = ~mes, group = "mes_r")
-
-
-bc.3 |>
-plot_ly(labels = ~name,
-        values = ~value,
-        hoverinfo = "label+value",
-        textinfo = "value",
-        type = 'pie',
-        textfont = list(size = 19, color = "#ffffff")) |>
-  layout(title = "Personas únicas capacitadas")
-
-```
 
 Row 
 ----------------------------------------------------------------------------------------------------
@@ -637,7 +608,7 @@ chart |>
         
         return('<div style=\"font-family: sans-serif; max-width: 250px; white-space: normal;\">' +
                '<strong>' + fecha + '</strong><br/>' + 
-               '<b>Total fuera:</b> ' + total + '<br/>' +
+               '<b>En capacitación:</b> ' + total + '<br/>' +
                '<b>Detalle: </b>' + lista_html + 
                '</div>');
       }
@@ -656,6 +627,12 @@ acum.mes.pyr <- df.p |>
   filter(name=="Realizadas", x1 != "Acumulado") |>
   pivot_wider(names_from = x2, values_from = por_mesinst) |>
   mutate(across(c(CADER, DDR, OREF), \(x) cumsum(x)))
+
+numero <- as.numeric(unique(acum.mes.pyr$x1))[unique(acum.mes.pyr$x1)==mes_reciente]
+
+acum.mes.pyr <-  acum.mes.pyr |>
+  mutate(aux.n = as.numeric(x1)) |>
+  filter(aux.n <= numero)
 
 # 2. Construir la dona con colores mapeados y texto al centro
 acum.mes.pyr |> 
@@ -689,6 +666,12 @@ acum.mes.hm <- df.a |>
   pivot_wider(names_from = name, values_from = por_mesinst) |>
   mutate(across(c(Hombres, Mujeres), \(x) cumsum(x)))
 
+
+acum.mes.hm <-  acum.mes.hm |>
+  mutate(aux.n = as.numeric(x1)) |>
+  filter(aux.n <= numero) 
+
+
 # 2. Construir la dona con colores mapeados y texto al centro
 acum.mes.hm |> 
   plot_ly(
@@ -717,7 +700,36 @@ acum.mes.hm |>
 #  mutate(across(c(Agrícola, Pecuario), \(x) cumsum(x)))
 
 ```
+### 
+```{r Personas únicas de las listas, echo=FALSE}
+generos <- df.listas |>
+  group_by(mes) |>
+  summarise(Hombres = sum(sexo_h),
+            Mujeres = sum(sexo_m)) |>
+  pivot_longer(cols = c(Hombres, Mujeres))
 
+generos.acum <- df.listas |>
+  summarise(Hombres = sum(sexo_h),
+            Mujeres = sum(sexo_m)) |>
+  pivot_longer(cols = c(Hombres, Mujeres)) |>
+  mutate(mes="Acumulado")
+
+
+generos <- rbind(generos, generos.acum)
+
+bc.3 <- SharedData$new(generos, key = ~mes, group = "mes_r")
+
+
+bc.3 |>
+plot_ly(labels = ~name,
+        values = ~value,
+        hoverinfo = "label+value",
+        textinfo = "value",
+        type = 'pie',
+        textfont = list(size = 19, color = "#ffffff")) |>
+  layout(title = "Personas únicas capacitadas")
+
+```
 
 
 # Datos por entidad
@@ -766,23 +778,19 @@ aux.df <- df.s |>
 nueva <- left_join(nueva, aux.df)
 
 datos_encargados <- nueva %>%
-  mutate(x2=ifelse(x2 %in% c("Presencial", "Virtual", "Reprogramada Virtual", "Reprogramada Presencial"), "En misión 🛄", ifelse(x2 %in% "Traslado / en transito", "Traslado / en transito", "Sin misión ⭕️")),
+  mutate(x2=ifelse(x2 %in% c("Presencial", "Virtual", "Reprogramada Virtual", "Reprogramada Presencial"), "En capacitación 🛄", ifelse(x2 %in% "Traslado / en transito", "Traslado / en transito", "Sin misión ⭕️")),
     # Construimos el diseño HTML completo en letras grandes para cada entidad
     tarjeta_html = paste0("<div style='font-family: sans-serif; padding: 5px 0px;'>",
-        "<div style='font-size: 13px; font-weight: 800; color: #1a252f; margin-bottom: 4px;'>",
+        "<div style='font-size: 15px; font-weight: 800; color: #1a252f; margin-bottom: 4px;'>",
           "Encargado: <b>", tecnico, "</b>",
         "</div>",
-        "<div style='font-size: 10px; color: #555555;'>",
+        "<div style='font-size: 12px; color: #555555;'>",
           "📍 ", entidad,
         "</div>",
-        "<div style='font-size: 10px; color: #555555;'>",
+        "<div style='font-size: 12px; color: #555555;'>",
         "Situación: ", x2, "</div>",
-        "<div style='font-size: 10px; color: #555555;'>",
-        "Próxima capacitación: ", format(fecha, "%d de %B"), "</div>",
-        "<div style='font-size: 10px; color: #555555;'>", "Actualización: ", format(fecha_actualizacion, "%d de %B"), "</div>",
-      '<a href="', btor_7, '" target="_blank" style="color: #2980b9; font-weight: bold; text-decoration: underline; font-size:9px;">', 
-      "Carpeta BTORs", 
-      '</a>'
+        "<div style='font-size: 12px; color: #555555;'>",
+        "Próxima capacitación: ", format(fecha, "%d de %B"), "</div>"
     )
   ) 
 
@@ -839,53 +847,75 @@ tags$script(HTML("
 
 ```
 
-Row {data-height=400}
+Row {data-height=350}
 ----------------------------------------------------------------------------------
 
-### **Historial de estatus**
-```{r Filtro Mes para Status, echo=FALSE, include=FALSE}
-datos_estatus <- df.s|>
-  mutate(value = toupper(value),
-    tarjeta_html = paste0("<div style='font-family: sans-serif; padding: 5px 0px;'>",
-                          "<div style='font-size: 11px; font-weight: 800; color: #1a252f; margin-bottom: 4px;'>", toupper(mes), "<b>", ": </b>",
-        "<div style='font-size: 11px; font-weight: 800; color: #1a252f; margin-bottom: 4px;'>",
-          "Estatus: <b>", value,
-        "</div>",
-      "</div>"
-    )
-  )
+### **Mapa de DDRs**
+```{r Mapa de DDRs, echo=FALSE, warning=FALSE, message=FALSE, include=FALSE}
+library(sf)
+library(leaflet)
+# Read shp of DDRs-----
+ddrs.shp <- read_sf("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Scripts/Bases/shp/ddrs.shp")
+ddrs.shp <- ddrs.shp |>
+  rename("entidad"="estado") |>
+  mutate(entidad = case_when(entidad=="MICHOACAN DE OCAMPO" ~ "MICHOACAN",
+                             entidad== "VERACRUZ DE IGNACIO DE LA LLAVE" ~ "VERACRUZ",
+                             entidad=="YUCATÁN" ~ "YUCATAN",
+                             entidad=="COAHUILA DE ZARAGOZA"~ "COAHUILA",
+                             .default= entidad)) |>
+  filter(!is.na(entidad))
+#Read data of CADERS----
+caders <- read_csv("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Scripts/Bases/base_cader_limpia.csv")
 
-bc.s <- SharedData$new(datos_estatus, key = ~entidad, group = "estado_r")
+caders <- caders |>
+  rename("entidad"="estado") |>
+  distinct(entidad, id_estado, id_ddr, nombre_del_ddr, id_cader, nombre_del_cader_vs_cab, .keep_all = T)
+
+sd_ddr <- SharedData$new(ddrs.shp, key = ~entidad, group = "estado_r")
+sd_caders <- SharedData$new(caders, key = ~entidad, group = "estado_r")
+#sd_caders <- SharedData$new(caders, key = ~nombre_del_ddr, group = "vincular_ddr")
 ```
+```{r Pintar Mapa de DDRs, echo=FALSE}
 
-```{r Estatus, echo=FALSE}
+plot_ly(sd_ddr,
+        fillcolor = ~nmbr_d_,
+        type = 'scatter',
+        colors = "Paired",
+        text = ~paste("<b>Entidad:</b>", entidad, "<br><b>DDR:</b>", nmbr_d_),
+        hoverinfo = "text") 
+
+
+```
+Row
+--------------------------
+### **CADERs**
+```{r Tabla de CADERs}
 datatable(
-  bc.s,
-  class = "compact",
-  colnames = NULL,
-  escape = FALSE,      # 1. Fuerza a la tabla a ocupar todo el ancho posible
-  selection = "none",   # 2. DESACTIVA el clic/selección de filas en Crosstalk
+  sd_caders,
   rownames = FALSE,
-  options = list(
-    dom = 't',
-    paging = FALSE,   
-    scrollY = "480px",
-    pageLength = 12,
-    ordering = FALSE,
-    columnDefs = list(
-      list(targets = c(0, 1, 2, 3, 4, 5), visible = FALSE) # Oculta columnas auxiliares
-    ),
-    initComplete = JS(
+  options = list(pageLength = 10,
+                 dom = 'tp',
+                 columnDefs = list(
+      list(targets = c(0:4, 6:9,11:15), visible = FALSE),
+      list(targets = 5, title = "DDR"),
+      list(targets = 10, title = "CADER")
+                                  ),
+      initComplete = JS(
       "function(settings, json) {",
-      # Forzamos la tabla y las celdas a ocupar el 100% sin fondos ni bordes estorbosos
-      "  $(this.api().table().node()).css({'border': 'none', 'background': 'transparent', 'width': '90%'});",
+      # 1. Quitamos bordes y fondos
+      "  $(this.api().table().node()).css({'border': 'none', 'background': 'transparent', 'width': '100%'});",
       "  $(this.api().table().body()).find('td').css({'border': 'none', 'padding': '0px'});",
+      # 2. CLAVE PARA EL HEIGHT: Forzamos al contenedor y al cuerpo a expandirse al 100% y permitir scroll si se requiere
+      "  $(this.api().table().container()).css({'height': '100%', 'width': '100%'});",
+      "  $('.dataTables_scrollBody').css({'max-height': 'none', 'height': '100%'});",
       "}"
     )
   )
 )
-
+  
 ```
+
+
 
 Column
 -------------------------------
@@ -910,7 +940,7 @@ b.1.ce |>
     x = ~name, 
     y = ~Planeadas,
     type = "bar",
-    name = "Pendientes",
+    name = "Planeadas",
     marker = list(color = 'gray')) |> 
   add_trace(y = ~Realizadas, name="Realizadas", marker = list(color = '#003A70')) |>
   layout(xaxis = list(title=""), yaxis = list(title=""), barmode='group') |>
@@ -920,9 +950,6 @@ b.1.ce |>
     clickmode="none"
     ) |>
   highlight(on = NULL)
-
-
-
 
 ```
 
@@ -963,6 +990,45 @@ bc.3e |>
   layout(xaxis = list(title=""), yaxis = list(title=""), barmode='group') |>
   layout(
     title = list(text = "Personas capacitadas", font = list(size = 16)),
+    showlegend = TRUE,
+    clickmode='none'
+    ) |>
+  highlight(on = NULL)
+
+
+```
+
+### Horas de capacitación
+```{r Gráfico de horas de capacitación, echo=FALSE}
+df.he <- df.h |> group_by(x1, name, entidad) |>
+  summarise(Horas = sum(value, na.rm = T), .groups = 'drop') |>
+  mutate(
+  x1 = factor(x1, levels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre", "Acumulado")
+  )) |>
+  pivot_wider(names_from = name, values_from = Horas)
+
+df.hea <- df.h |> group_by(name, entidad) |>
+  summarise(Horas = sum(value, na.rm = T), .groups = 'drop') |>
+  pivot_wider(names_from = name, values_from = Horas) |>
+  mutate(x1 = "Acumulado")
+
+df.he <- rbind(df.he, df.hea)
+
+
+bc.4e <- SharedData$new(df.he, key = ~entidad, group = "estado_r")
+
+
+bc.4e |> 
+  plot_ly(
+    x = ~x1, 
+    y = ~Agrícola,
+    type = "bar",
+    name = "Agrícola",
+    marker = list(color = 'green')) |> 
+  add_trace(y = ~Pecuario, name="Pecuario", marker = list(color = 'brown')) |>
+  layout(xaxis = list(title=""), yaxis = list(title=""), barmode='group') |>
+  layout(
+    title = list(text = "Horas por tema", font = list(size = 16)),
     showlegend = TRUE,
     clickmode='none'
     ) |>
