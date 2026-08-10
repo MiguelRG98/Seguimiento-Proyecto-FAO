@@ -23,30 +23,30 @@ p_load(here, tidyverse, ggplot2, openxlsx, janitor, plotly, lubridate, hrbrtheme
 
 #Leer bases de datos----
 ## Misiones planeas y realizadas----
-df.p <- read.xlsx(here("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Resumen estadístico.xlsx"), sheet="Avance CAPACITACIONES",
+df.p <- read.xlsx("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Resumen estadístico.xlsx", sheet="Avance CAPACITACIONES",
                   startRow = 6, cols = 2:67) |>
   clean_names() |>
   filter(!is.na(x10) & x1 != "Total")
 
 ## Asistencias registradas----
-df.a <- read.xlsx(here("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Resumen estadístico.xlsx"), sheet="Avance ASISTENCIAS",
+df.a <- read.xlsx("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Resumen estadístico.xlsx", sheet="Avance ASISTENCIAS",
                   startRow = 6, cols = 2:67) |>
   clean_names() |>
   filter(!is.na(x10) & x1 != "Total")
 
 ## Horas registradas----
-df.h <- read.xlsx(here("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Resumen estadístico.xlsx"), sheet="Avance HORAS",
+df.h <- read.xlsx("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Resumen estadístico.xlsx", sheet="Avance HORAS",
                   startRow = 6, cols = 2:67) |>
   clean_names() |>
   filter(!is.na(x10) & x1 != "Total")
 
 ## Presupuesto----
-df.f <- read.xlsx(here("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Resumen estadístico y seguimiento de presupuesto.xlsx"), sheet="Presupuesto", startRow = 4, cols = 3:15) |>
+df.f <- read.xlsx("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Resumen estadístico y seguimiento de presupuesto.xlsx", sheet="Presupuesto", startRow = 4, cols = 3:15) |>
   filter(!Entidad %in% c("Total", "Porcentaje"))
 
 
 ## GANTT----
-df.g <- read.xlsx(here("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Calendario GANTT - Misiones.xlsx")) |>
+df.g <- read.xlsx("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Calendario GANTT - Misiones.xlsx") |>
   clean_names()
 
 ## Seguimiento de agendas----
@@ -322,7 +322,7 @@ prueba <- df.g |>
                    .default = name)) 
 
 ## Creamos una base auxiliar para ayudarnos a generar las notas del GANTT----
-dict.gant <- read.xlsx(here("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Calendario GANTT - Misiones.xlsx"), sheet="Notación", colNames = FALSE) |>
+dict.gant <- read.xlsx("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Calendario GANTT - Misiones.xlsx", sheet="Notación", colNames = FALSE) |>
   clean_names() |>
   mutate(x1=str_squish(x1))
 
@@ -876,13 +876,10 @@ sd_caders <- SharedData$new(caders, key = ~entidad, group = "estado_r")
 #sd_caders <- SharedData$new(caders, key = ~nombre_del_ddr, group = "vincular_ddr")
 ```
 ```{r Pintar Mapa de DDRs, echo=FALSE}
-
-plot_ly(sd_ddr,
-        fillcolor = ~nmbr_d_,
-        type = 'scatter',
-        colors = "Paired",
+sd_ddr |>
+plot_ly(fillcolor = ~nmbr_d_,
         text = ~paste("<b>Entidad:</b>", entidad, "<br><b>DDR:</b>", nmbr_d_),
-        hoverinfo = "text") 
+        hoverinfo = "text")
 
 
 ```
