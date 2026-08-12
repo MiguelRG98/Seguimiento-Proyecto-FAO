@@ -828,7 +828,7 @@ datatable(
       "  $(this.api().table().node()).css({'border': 'none', 'background': 'transparent', 'width': '100%'});",
       "  $(this.api().table().body()).find('td').css({'border': 'none', 'padding': '0px'});",
       # 2. CLAVE PARA EL HEIGHT: Forzamos al contenedor y al cuerpo a expandirse al 100% y permitir scroll si se requiere
-      "  $(this.api().table().container()).css({'height': '100%', 'width': '90%'});",
+      "  $(this.api().table().container()).css({'height': '100%', 'width': '93%'});",
       "  $('.dataTables_scrollBody').css({'max-height': 'none', 'height': '100%'});",
       "}"
     )
@@ -914,7 +914,7 @@ datatable(
       "  $(this.api().table().node()).css({'border': 'none', 'background': 'transparent', 'width': '100%'});",
       "  $(this.api().table().body()).find('td').css({'border': 'none', 'padding': '0px'});",
       # 2. CLAVE PARA EL HEIGHT: Forzamos al contenedor y al cuerpo a expandirse al 100% y permitir scroll si se requiere
-      "  $(this.api().table().container()).css({'height': '100%', 'width': '90%'});",
+      "  $(this.api().table().container()).css({'height': '100%', 'width': '93%'});",
       "  $('.dataTables_scrollBody').css({'max-height': 'none', 'height': '100%'});",
       "}"
     )
