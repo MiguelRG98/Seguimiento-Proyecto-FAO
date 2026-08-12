@@ -333,6 +333,7 @@ df.g <- left_join(prueba, aux_fechas, join_by(name.1==mes)) |>
 df.g <- left_join(df.g, dict.gant, join_by(nota==x1))
 df.g <- left_join(df.g, ent.tec, join_by(estado==entidad))
 
+
 df.s <- df.s |>
   select(entidad, btor_7, fecha_actualizacion, starts_with("estatus")) |>
   mutate(across(starts_with("estatus"), \(x) as.character(x))) |>
@@ -367,16 +368,14 @@ mes_reciente <- str_to_sentence(month(fecha_reciente, label = T, locale = "es_ES
 
 # **Situación nacional**
 
-Column {.sidebar}
+Row
 -----------------------------------------------------------------------
 
-### Seleccione periodo
+### Seleccione periodo para avanace de capacitaciones por mes o acumulado
 
 **Importante**: Puede seleccionar un mes específico o visualizar los datos acumulados.
 
-El tablero fue actualizado el **`r format(fecha_reciente, "%d de %B de %Y")`** al cierre del día (18:50 hrs. CDMX) La información está disponible por entidad (técnico) y por mes. Se nutre de diversos documentos de excel que los técnicos llenan con regularidad y la actualización en los datos depende de este llenado.  
-**Ni el GANTT ni la tabla de técnicos en misión se modifica al cambiar el filtro**
-
+Se nutre de diversos documentos de excel que los técnicos llenan con regularidad y la actualización en los datos depende de este llenado. **Ni el GANTT ni la tabla de técnicos en misión se modifica al cambiar el filtro**
 
 ```{r Filtro Periodo, echo=FALSE}
 df.p <- df.p |>
@@ -445,9 +444,11 @@ b.1.c |>
 b.2 <- df.g |> 
   filter(fecha==fecha_reciente) |>
   filter(!is.na(nota)) |>
-  distinct(tecnico, x2, estado) |>
   #mutate(fecha=format(fecha, "%d-%B-%Y")) |>
-  rename("Nombre"="tecnico", "Situación"="x2", "Estado"="estado") 
+  rename("Nombre"="tecnico", "Situación"="x2", "Estado"="estado") |>
+  #Modificar mientras que Aldair e Iván Estén al pendiente de Jalisco
+  mutate(Nombre = ifelse(Estado %in% c("COLIMA", "QUINTANA ROO", "BAJA CALIFORNIA", "JALISCO"), "Iván Bravo y Aldair Hernández", Nombre)) |>
+  distinct(Nombre, Situación, Estado) 
 
 if(nrow(b.2)==0){
   b.2[1, "Nombre"] <- "Sin técnicos en capacitación"
@@ -778,7 +779,10 @@ aux.df <- df.s |>
 nueva <- left_join(nueva, aux.df)
 
 datos_encargados <- nueva %>%
-  mutate(x2=ifelse(x2 %in% c("Presencial", "Virtual", "Reprogramada Virtual", "Reprogramada Presencial"), "En capacitación 🛄", ifelse(x2 %in% "Traslado / en transito", "Traslado / en transito", "Sin misión ⭕️")),
+  mutate(
+    tecnico = ifelse(entidad %in% c("COLIMA", "QUINTANA ROO", "BAJA CALIFORNIA"), "Aldair Hernández e Iván Bravo", tecnico),
+    x2.x = ifelse(is.na(x2), x2.x, x2),
+    x2=ifelse(x2 %in% c("Presencial", "Virtual", "Reprogramada Virtual", "Reprogramada Presencial"), "En capacitación 🛄", ifelse(x2 %in% "Traslado / en transito", "Traslado / en transito", "Sin misión ⭕️")),
     # Construimos el diseño HTML completo en letras grandes para cada entidad
     tarjeta_html = paste0("<div style='font-family: sans-serif; padding: 5px 0px;'>",
         "<div style='font-size: 15px; font-weight: 800; color: #1a252f; margin-bottom: 4px;'>",
@@ -792,7 +796,8 @@ datos_encargados <- nueva %>%
         "<div style='font-size: 12px; color: #555555;'>",
         "Próxima capacitación: ", format(fecha, "%d de %B"), "</div>"
     )
-  ) 
+  ) |>
+  distinct(entidad, .keep_all = T)
 
 # 2. Crear el objeto SharedData
 base.m <- SharedData$new(datos_encargados, key = ~entidad, group = "estado_r")
@@ -869,7 +874,13 @@ caders <- read_csv("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAg
 
 caders <- caders |>
   rename("entidad"="estado") |>
-  distinct(entidad, id_estado, id_ddr, nombre_del_ddr, id_cader, nombre_del_cader_vs_cab, .keep_all = T)
+  distinct(entidad, id_estado, id_ddr, nombre_del_ddr, id_cader, nombre_del_cader_vs_cab, .keep_all = T) |>
+  mutate(entidad = case_when(entidad=="MICHOACAN DE OCAMPO" ~ "MICHOACAN",
+                             entidad== "VERACRUZ DE IGNACIO DE LA LLAVE" ~ "VERACRUZ",
+                             entidad=="YUCATÁN" ~ "YUCATAN",
+                             entidad=="COAHUILA DE ZARAGOZA"~ "COAHUILA",
+                             .default= entidad)) |>
+  filter(!is.na(entidad))
 
 sd_ddr <- SharedData$new(ddrs.shp, key = ~entidad, group = "estado_r")
 sd_caders <- SharedData$new(caders, key = ~entidad, group = "estado_r")
@@ -903,7 +914,7 @@ datatable(
       "  $(this.api().table().node()).css({'border': 'none', 'background': 'transparent', 'width': '100%'});",
       "  $(this.api().table().body()).find('td').css({'border': 'none', 'padding': '0px'});",
       # 2. CLAVE PARA EL HEIGHT: Forzamos al contenedor y al cuerpo a expandirse al 100% y permitir scroll si se requiere
-      "  $(this.api().table().container()).css({'height': '100%', 'width': '100%'});",
+      "  $(this.api().table().container()).css({'height': '100%', 'width': '90%'});",
       "  $('.dataTables_scrollBody').css({'max-height': 'none', 'height': '100%'});",
       "}"
     )
