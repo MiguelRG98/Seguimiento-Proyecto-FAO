@@ -372,9 +372,9 @@ mes_reciente <- str_to_sentence(month(fecha_reciente, label = T, locale = "es_ES
 
 Se nutre de diversos documentos de excel que los técnicos llenan con regularidad y la actualización en los datos depende de este llenado. **Ni el GANTT ni la tabla de técnicos en misión se modifica al cambiar el filtro**
 
+
 Row
 -----------------------------------------------------------------------
-
 ### Seleccione periodo para avanace de capacitaciones por mes o acumulado
 
 ```{r Filtro Periodo, echo=FALSE}
@@ -403,10 +403,6 @@ tags$script(HTML(paste0("
 ")))
 
 ```
-
-
-Row
------------------------------------------------------------------------
 ###
 
 ```{r Gráfico de misiones planeadas vs realizadas, echo=FALSE}
