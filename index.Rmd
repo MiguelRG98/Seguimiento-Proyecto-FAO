@@ -14,7 +14,8 @@ output:
 ```{r Setup, include=FALSE}
 rm(list = ls())
 # Poner RStudio al español----
-Sys.setlocale("LC_TIME", "es_ES.UTF-8")
+#Sys.setlocale("LC_TIME", "es_ES.UTF-8")
+Sys.setlocale("LC_ALL", "en_US.UTF-8")
 fecha_reciente = Sys.Date()
 
 # Cargar librerías----
@@ -296,7 +297,7 @@ fechas <- fechas[!weekdays(fechas) %in% c("sábado", "domingo")]
 
 aux_fechas$fecha <- fechas[1:nrow(aux_fechas)]
 
-aux_fechas$verificar <- ifelse(day(aux_fechas$fecha) != as.numeric(aux_fechas$Técnico), 1, 0)
+aux_fechas$verificar <- ifelse(day(aux_fechas$fecha) != as.numeric(aux_fechas$`Técnico`), 1, 0)
 
 if(sum(aux_fechas$verificar) > 0){
   message("ATENCIÓN: REVISAR LA PARTE DEL CÓDIGO DONDE SE GENERAN LAS FECHAS PARA EL GANTT")
