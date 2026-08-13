@@ -369,7 +369,7 @@ mes_reciente <- str_to_sentence(month(fecha_reciente, label = T, locale = "es_ES
 
 # **Situación nacional**
 
-**Importante**: Puede seleccionar un mes específico o visualizar los datos acumulados.
+**Importante**: este tablero se actualizó el día **`r {paste0(day(Sys.Date()), " de ", month(Sys.Date(), label = T, abbr=F), " del ", year(Sys.Date()))}` a las 10:30 a.m.**
 
 Se nutre de diversos documentos de excel que los técnicos llenan con regularidad y la actualización en los datos depende de este llenado. **Ni el GANTT ni la tabla de técnicos en misión se modifica al cambiar el filtro**
 
