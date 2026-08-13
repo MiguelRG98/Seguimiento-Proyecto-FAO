@@ -14,8 +14,8 @@ output:
 ```{r Setup, include=FALSE}
 rm(list = ls())
 # Poner RStudio al español----
-#Sys.setlocale("LC_TIME", "es_ES.UTF-8")
-Sys.setlocale("LC_ALL", "en_US.UTF-8")
+Sys.setlocale("LC_TIME", "es_ES.UTF-8")
+#Sys.setlocale("LC_ALL", "en_US.UTF-8")
 fecha_reciente = Sys.Date()
 
 # Cargar librerías----
