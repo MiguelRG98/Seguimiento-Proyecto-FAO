@@ -836,7 +836,7 @@ tags$script(HTML("
   $(document).ready(function() {
     setTimeout(function() {
       // Reemplaza por la Entidad deseada (debe coincidir EXACTO con el texto de tu base)
-      var entidadDefault = 'AGUASCALIENTES'; 
+      var entidadDefault = 'ZACATECAS'; 
       
       var selectNode = $('#filtro_entidad select');
       if (selectNode.length && selectNode[0].selectize) {
