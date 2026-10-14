@@ -41,7 +41,7 @@ df.h <- read.xlsx("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgr
   filter(!is.na(x10) & x1 != "Total")
 
 ## Presupuesto----
-df.f <- read.xlsx("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Resumen estadístico y seguimiento de presupuesto.xlsx", sheet="Presupuesto", startRow = 4, cols = 3:15) |>
+df.f <- read.xlsx("/Users/miguelrosales/Library/CloudStorage/OneDrive-FoodandAgricultureOrganization/Varios FAO/Planes de Capacitación Técnicos/Resumen y seguimiento de presupuesto.xlsx", sheet="Presupuesto", startRow = 4, cols = 2:15) |>
   filter(!Entidad %in% c("Total", "Porcentaje"))
 
 
